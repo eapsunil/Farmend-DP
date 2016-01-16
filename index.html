@@ -1,0 +1,404 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Farmend</title>
+<link href="jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.css" rel="stylesheet" type="text/css" />
+
+<style type="text/css">
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    .controls {
+        margin-top: 10px;
+        border: 1px solid transparent;
+        border-radius: 2px 0 0 2px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        height: 32px;
+        outline: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+    #pac-input {
+        background-color: #fff;
+        font-family: Roboto;
+        font-size: 15px;
+        font-weight: 300;
+        margin-left: 12px;
+        padding: 0 11px 0 13px;
+        text-overflow: ellipsis;
+        width: 300px;
+    }
+    #pac-input:focus {
+        border-color: #4d90fe;
+    }
+    .pac-container {
+        font-family: Roboto;
+    }
+    #type-selector {
+        color: #fff;
+        background-color: #4d90fe;
+        padding: 5px 11px 0px 11px;
+    }
+    #type-selector label {
+        font-family: Roboto;
+        font-size: 13px;
+        font-weight: 300;
+    }
+    #target {
+        width: 345px;
+    }
+</style>
+
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.js"></script>
+<!-- Google Maps -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeIkiU_0tjVFORuJf5rLm9Vho0JbmIIgs&libraries=places&callback=initAutocomplete"
+    async defer></script>
+<script>
+    // This example adds a search box to a map, using the Google Place Autocomplete
+    // feature. People can enter geographical searches. The search box will return a
+    // pick list containing a mix of places and predicted search terms.
+    function initAutocomplete() {
+
+        var marker;
+        var map = new google.maps.Map(document.getElementById('map'), {
+            center: {
+                lat: 13.0192151,
+                lng: 77.55222650000002
+            },
+            zoom: 13,
+            mapTypeControl:false,
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+        });
+
+        {
+            //Initialize Latitude Longitude
+            myCurrentLocation.latitude = 13.0192151;
+            myCurrentLocation.longitude = 77.55222650000002;
+
+            myAddress=new google.maps.LatLng(13.0192151,77.55222650000002);
+            marker=new google.maps.Marker({
+                position:myAddress,
+                draggable:true,
+                icon: new google.maps.MarkerImage('images/marker001.png',
+                    new google.maps.Size(18, 50),
+                    new google.maps.Point(0,0),
+                    new google.maps.Point((18/2+0.4),50),
+                    new google.maps.Size(18, 50)
+                )
+            });
+            marker.setMap(map);
+
+            var contentString = ''+
+            '<button onclick="window.parent.setMyLocationByInfoWindow(this)">Set My Location </button>';
+
+            var infowindow = new google.maps.InfoWindow({
+                content: contentString
+            });
+            marker.addListener('click', function() {
+                infowindow.open(map, marker);
+            });
+
+            google.maps.event.addListener(marker, 'dragend', function() 
+            {
+                myCurrentLocation.latitude = marker.position.lat();
+                myCurrentLocation.longitude = marker.position.lng();
+            });
+        }
+
+        // Create the search box and link it to the UI element.
+        var input = document.getElementById('pac-input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        // Bias the SearchBox results towards current map's viewport.
+        map.addListener('bounds_changed', function() {
+            searchBox.setBounds(map.getBounds());
+        });
+
+        // [START region_getplaces]
+        // Listen for the event fired when the user selects a prediction and retrieve
+        // more details for that place.
+        searchBox.addListener('places_changed', function() {
+            var places = searchBox.getPlaces();
+
+            if (places.length == 0) {
+                return;
+            }
+
+
+            var bounds = new google.maps.LatLngBounds();
+            places.forEach(function(place) {
+
+                myCurrentLocation.latitude = place.geometry.location.lat();
+                myCurrentLocation.longitude = place.geometry.location.lng();
+
+                myAddress=new google.maps.LatLng(place.geometry.location.lat(),place.geometry.location.lng());
+                marker.setMap(null);
+                marker=new google.maps.Marker({
+                    position:myAddress,
+                    draggable:true,
+                    icon:new google.maps.MarkerImage('images/marker001.png',
+                        new google.maps.Size(18, 50),
+                        new google.maps.Point(0,0),
+                        new google.maps.Point((18/2+0.4),50),
+                        new google.maps.Size(18, 50)
+                    )
+                });
+                marker.setMap(map);
+
+                var contentString = ''+
+                '<button onclick="window.parent.setMyLocationByInfoWindow(this)">Set My Location </button>';
+
+                var infowindow = new google.maps.InfoWindow({
+                    content: contentString
+                });
+                marker.addListener('click', function() {
+                    infowindow.open(map, marker);
+                });
+
+                google.maps.event.addListener(marker, 'dragend', function() 
+                {
+                    myCurrentLocation.latitude = marker.position.lat();
+                    myCurrentLocation.longitude = marker.position.lng();
+                });
+
+                if (place.geometry.viewport) {
+                    // Only geocodes have viewport.
+                    bounds.union(place.geometry.viewport);
+                } else {
+                    bounds.extend(place.geometry.location);
+                }
+            });
+            map.fitBounds(bounds);
+        });
+        //Initialize map not to display
+        setTimeout(function(){ document.querySelector('#map').style.display = "none"; }, 5000);
+        
+        // [END region_getplaces]
+    }
+    
+</script>
+<!-- end -->
+
+<script type="text/javascript">
+    //Constants
+    myCurrentLocation = {};
+    myCurrentLocation.latitude = 0;
+    myCurrentLocation.longitude = 0;
+    mainurl = 'http://eapmc.com/farmend/index.php/distributioncentre/';
+    consumerObjectData = {};
+
+    var sel = function(selector) {
+
+        // This element and its functions
+        elem = document.querySelectorAll(selector);
+        elem.setValue = function(value) {
+            for (var i = 0; i < this.length; i++) {
+                this[i].value = value;
+            }
+        }
+        return elem;
+    }
+
+    //populating saturdays
+    var getFiveSaturdays = function() {
+        todayDateObject = new Date();
+        onedaymilliseconds = 1000*60*60*24;
+        oneweekmilliseconds = onedaymilliseconds*7;
+        var fiveSaturdaysArray = [];
+        var differenceComingSaturdayDays = 6 - todayDateObject.getDay();
+        comingSaturdayMilliseconds = Date.now() + differenceComingSaturdayDays*onedaymilliseconds;
+        for (var i = 0,sat = comingSaturdayMilliseconds; i < 5; i++,sat -= oneweekmilliseconds) {
+            date = ( ((new Date(sat).getDate()) > 9 ) ? (new Date(sat).getDate()) : ('0'+new Date(sat).getDate()) );
+            month = (new Date(sat).getMonth()+1);
+            month = (month > 9) ? month : ('0' + month ); 
+            year = new Date(sat).getFullYear();
+            fiveSaturdaysArray[i] = year +"-"+ month +"-"+  date;
+        }
+        return fiveSaturdaysArray;
+    }
+
+    var populatingSaturdays = function() {
+        for (var i = 0; i < getFiveSaturdays().length; i++) {
+            $('#selectiveSaturdays').append('<option>'+getFiveSaturdays()[i]+'</option>');
+        }
+    }
+    $(document).ready(function() {
+        populatingSaturdays();
+    });
+
+    //
+    $.getJSON(mainurl + "getConsumerOrders", function(data){
+        consumerObjectData = data;
+        todayDateObject = new Date();
+        todayDate = todayDateObject.getFullYear() + "-" +todayDateObject.getMonth() + "-" +todayDateObject.getDate();
+        setConsumerOrders(todayDate);
+    });
+    //
+
+
+
+
+    
+    myCurrentLocation.findMylocation = function() {
+        navigator.geolocation.watchPosition(this.findMylocationSuccess, this.findMylocationError, this.findMylocationOptions);
+    }
+    myCurrentLocation.findMylocationSuccess = function(position) {
+        myCurrentLocation.latitude = position.coords.latitude;
+        myCurrentLocation.longitude = position.coords.longitude;
+        sel('#latitude').setValue(myCurrentLocation.latitude);
+        sel('#longitude').setValue(myCurrentLocation.longitude);
+    }
+    myCurrentLocation.findMylocationError = function(error) {
+        myCurrentLocation.latitude = 0;
+        myCurrentLocation.longitude = 0;
+        myCurrentLocation.error = error;
+    }
+    var formsubmit = function(obj) {
+        event.preventDefault();
+        switch ($(obj).data("submissiontype")) {
+            case "Consumer Register":
+                formsubmitajax({
+                    url : mainurl + 'distributionCentreSignup',
+                    data :  $("#consumerRegister").serialize(),
+                    info : "Your data has successfully approached",
+                    errorElement : "consumer_register_error",
+                    resetFormID : "consumerRegister"
+                });
+                break;
+            default:
+                break;
+        } 
+    }
+    var formsubmitajax = function(formobject) {
+        $.ajax( {
+            url: formobject.url,
+            method: "POST",
+            data: formobject.data,
+            success:function(data) {
+                alert(data.result);
+                $("#"+formobject.errorElement).html(data.result).css("color","red");
+                info = formobject.info;
+                if(data.result.toLowerCase().indexOf(info.toLowerCase()) > -1){
+                    $("#"+formobject.errorElement).html(data.result).css("color","green");
+                    document.getElementById(formobject.resetFormID).reset();
+                }
+                window.location.href = "#"+formobject.errorElement;
+            }
+        });
+    }
+        
+    var setConsumerOrders = function(selectedDate) {
+
+        consumerHTMLData = '';
+        consumerHTMLData += '<div class="ui-block-a" style="color:#0085c3; padding-bottom:6px;" align="center"><strong>Customer Mobile Number</strong></div>';
+        consumerHTMLData += '<div class="ui-block-b" style="color:#0085c3; padding-bottom:6px;" align="center"><strong>Complete Pickup</strong></div>';
+        consumerHTMLData += '<div class="ui-block-c" style="color:#0085c3; padding-bottom:6px;" align="center"><strong>Not Picked</strong></div>';
+        consumerHTMLData += '<div class="ui-block-d" style="color:#0085c3; padding-bottom:6px;" align="center"><strong>Call Customer</strong></div>';
+
+        for (var i = 0; i < consumerObjectData.length; i++) {
+            if(consumerObjectData[i].pickUpDate == selectedDate){
+                consumerHTMLData += '<div class="ui-block-a" style="margin-top:5px; clear:both; color:#2b8a2f; padding-bottom:6px;" align="center">'+consumerObjectData[i].consumerMobileNumber+'</div>';
+                consumerHTMLData += '<div class="ui-block-b" data-theme="c" align="center"><input type="button" value="'+((consumerObjectData[i].pickUpStatus == 0) ? 'Not Picked': 'Picked' ) +'" /></div>';
+                consumerHTMLData += '<div class="ui-block-c" data-theme="c" align="center"><input type="button" value="'+'Send Auto Message'+'" /></div>';
+                consumerHTMLData += '<div class="ui-block-d" data-theme="c" align="center"><input type="button" value="'+'Call'+'" /></div>';
+            }
+            
+        }
+        $('#consumerData').html(consumerHTMLData);
+    }
+    var selectingConsumersFromDate = function(self) {
+        setConsumerOrders(self.value);
+    }
+    var setLocationByMap = function() {
+        setLocationByMap.statusClicked = (setLocationByMap.statusClicked !== undefined) ? !setLocationByMap.statusClicked : true ;
+        if(setLocationByMap.statusClicked)
+            document.querySelector('#map').style.display = "block";
+        else
+            document.querySelector('#map').style.display = "none";
+
+
+        sel('#latitude').setValue(myCurrentLocation.latitude);
+        sel('#longitude').setValue(myCurrentLocation.longitude);
+    }
+
+    var setMyLocationByInfoWindow = function(self) {
+        event.preventDefault();
+        sel('#latitude').setValue(myCurrentLocation.latitude);
+        sel('#longitude').setValue(myCurrentLocation.longitude);
+        setLocationByMap();
+    }
+</script>
+</head>
+
+<body>
+	<div data-role="page" id="home_screen">
+    	<div date-role="header" align="center" >
+        	Welcome to distribution point app
+        </div>
+        <div data-role="content">
+            <div id="consumer_register_error"></div>
+        	<form id="consumerRegister">
+            	<label><input type="button" value="Select Location by GPS" onclick="myCurrentLocation.findMylocation()" /></label>
+                <label><input type="button" value="Select Location by Map" onclick="setLocationByMap(this)" /></label>
+                <div style="display:block;">
+                    <input id="pac-input" class="controls" type="text" placeholder="Search Box">
+                    <div id="map" style="width:100%;height:300px"></div>
+                </div>
+                <label>Lat<input type="text" name="latitude" id="latitude" readonly="true"></label>
+                <label>Long<input type="text" name="longitude" id="longitude" readonly="true"></label>
+                <label>Mobile Number</label>
+                <input type="text" name="mobilenumber" />
+                <label>Distribution Centre Name</label>
+                <input type="text" name="distributioncentrename" />
+                <button onclick="formsubmit(this)" data-submissiontype="Consumer Register">Register</button>
+                <a href="#view_orders">View Orders</a>
+            </form>
+        </div>
+        <div data-role="footer" align="center">
+        	Powered by eAPMC
+        </div>
+	</div>
+    
+    <div data-role="page" id="view_orders">
+    	<div data-role="header" align="center" class="ui-grid-a">
+        	<div class="ui-block-a" style="color:#0085c3; padding-top:6px;">Distribution Point - Welcome User</div>
+            <div class="ui-block-b"><a href="#home_screen"><input type="button" value="Change Settings" /></a></div>
+        </div>
+        <div data-role="content">
+        	<div align="center" style="clear:both; margin-bottom:30px; margin-top:30px;">
+            	<form>
+                	<label>Select Pickup Date</label>
+                    <select id="selectiveSaturdays" onchange="selectingConsumersFromDate(this)"> 
+                    	<option>Select Date</option>
+                    </select>
+                </form>
+            </div>
+            <div style="clear:both; margin-top:25px; margin-bottom:20px;" class="ui-grid-c" data-theme="b" id="consumerData">
+            	<!-- <div class="ui-block-a" style="color:#0085c3; padding-bottom:6px;" align="center"><strong>Customer Mobile Number</strong></div>
+                <div class="ui-block-b" style="color:#0085c3; padding-bottom:6px;" align="center"><strong>Complete Pickup</strong></div>
+                <div class="ui-block-c" style="color:#0085c3; padding-bottom:6px;" align="center"><strong>Not Picked</strong></div>
+                <div class="ui-block-d" style="color:#0085c3; padding-bottom:6px;" align="center"><strong>Call Customer</strong></div>
+                
+                <div class="ui-block-a" style="margin-top:5px; clear:both; color:#2b8a2f; padding-bottom:6px;" align="center">Sunil Kumar</div>
+                <div class="ui-block-b" data-theme="c" align="center"><input type="button" value="Picked" /></div>
+                <div class="ui-block-c" data-theme="c" align="center"><input type="button" value="Send Auto Message" /></div>
+                <div class="ui-block-d" data-theme="c" align="center"><input type="button" value="Call" /></div>
+                
+                <div class="ui-block-a" style="margin-top:5px; clear:both; color:#2b8a2f; padding-bottom:6px;" align="center">Sunil Choudary</div>
+                <div class="ui-block-b" data-theme="c" align="center"><input type="button" value="Picked" /></div>
+                <div class="ui-block-c" data-theme="c" align="center"><input type="button" value="Send Auto Message" /></div>
+                <div class="ui-block-d" data-theme="c" align="center"><input type="button" value="Call" /></div> -->
+            </div>
+        </div>
+        <div data-role="footer" align="center">
+        	Powered by eapmc
+        </div>
+    </div>
+</body>
+</html>
